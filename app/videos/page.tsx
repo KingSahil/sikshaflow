@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Play, Clock, Eye, ThumbsUp, X, Loader2 } from "lucide-react";
+import { ArrowLeft, Play, Clock, Eye, ThumbsUp, X, Loader2, Send, Bot, CheckCircle2, Circle } from "lucide-react";
 
 // Declare YouTube types
 declare global {
@@ -44,6 +44,11 @@ function VideosContent() {
   const [videoEnded, setVideoEnded] = useState(false);
   const [showCompleteButton, setShowCompleteButton] = useState(false);
   const playerRef = useRef<any>(null);
+  const [subtopics, setSubtopics] = useState<Array<{ id: string; title: string; completed: boolean }>>([]);
+  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Load YouTube iframe API
   useEffect(() => {
@@ -58,14 +63,62 @@ function VideosContent() {
   useEffect(() => {
     const topic = searchParams.get("topic") || "";
     const subject = searchParams.get("subject") || "";
+    const subtopicsParam = searchParams.get("subtopics") || "";
+    
     console.log('Videos page loaded - Topic:', topic, 'Subject:', subject);
     setTopicTitle(topic);
     setSubjectName(subject);
+
+    // Parse subtopics from URL if available
+    if (subtopicsParam) {
+      try {
+        const parsedSubtopics = JSON.parse(decodeURIComponent(subtopicsParam));
+        setSubtopics(parsedSubtopics);
+      } catch (err) {
+        console.error('Error parsing subtopics:', err);
+      }
+    }
 
     if (topic) {
       fetchVideos(topic);
     }
   }, [searchParams]);
+
+  // Auto-scroll chat to bottom
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
+
+  // Listen for storage changes to update subtopics completion in real-time
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key && e.key.startsWith('video-completed-') && e.newValue === 'true') {
+        const completedTitle = e.key.replace('video-completed-', '');
+        setSubtopics(prev => prev.map(st => 
+          st.title === completedTitle ? { ...st, completed: true } : st
+        ));
+      }
+    };
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      
+      if (event.data.type === 'videoCompleted') {
+        const completedTitle = event.data.subtopicTitle;
+        setSubtopics(prev => prev.map(st => 
+          st.title === completedTitle ? { ...st, completed: true } : st
+        ));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('message', handleMessage);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
 
   const fetchVideos = async (query: string) => {
     setLoading(true);
@@ -110,6 +163,11 @@ function VideosContent() {
     // Store completion in localStorage
     const completedKey = `video-completed-${topicTitle}`;
     localStorage.setItem(completedKey, 'true');
+    
+    // Update subtopics state immediately
+    setSubtopics(prev => prev.map(st => 
+      st.title === topicTitle ? { ...st, completed: true } : st
+    ));
     
     // Dispatch custom event for same-tab updates
     window.dispatchEvent(new CustomEvent('videoCompleted', { 
@@ -186,6 +244,44 @@ function VideosContent() {
     });
   };
 
+  const handleSendMessage = async () => {
+    if (!chatInput.trim() || isSendingMessage) return;
+
+    const userMessage = chatInput.trim();
+    setChatInput("");
+    
+    // Add user message to chat
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setIsSendingMessage(true);
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message: userMessage,
+          topic: topicTitle,
+          subject: subjectName 
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to get response');
+
+      const data = await response.json();
+      
+      // Add assistant message to chat
+      setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      setChatMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: 'Sorry, I encountered an error. Please try again.' 
+      }]);
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Video Player Modal */}
@@ -202,63 +298,211 @@ function VideosContent() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-6xl bg-black rounded-2xl overflow-hidden shadow-2xl"
+              className="relative w-full max-w-[95vw] h-[90vh] bg-black rounded-2xl overflow-hidden shadow-2xl flex"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close Button */}
-              <button
-                onClick={handleCloseVideo}
-                className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
+              {/* Left Sidebar - AI Chatbot */}
+              <div className="w-80 bg-gray-900 flex flex-col border-r border-gray-700">
+                {/* Chat Header */}
+                <div className="p-4 bg-gradient-to-r from-purple-600 to-blue-600 border-b border-gray-700">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                      <Bot className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white">AI Tutor</h3>
+                      <p className="text-xs text-blue-100">Powered by Gemini 2.5 Pro</p>
+                    </div>
+                  </div>
+                </div>
 
-              {/* Completion Message */}
-              <AnimatePresence>
-                {showCompletionMessage && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg font-semibold"
-                  >
-                    ✓ Video Marked Complete!
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                {/* Chat Messages */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {chatMessages.length === 0 && (
+                    <div className="text-center text-gray-400 text-sm py-8">
+                      <Bot className="w-12 h-12 mx-auto mb-3 text-gray-600" />
+                      <p>Ask me anything about {topicTitle}!</p>
+                      <p className="text-xs mt-2">I'm here to help you understand better.</p>
+                    </div>
+                  )}
+                  
+                  {chatMessages.map((msg, idx) => (
+                    <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[85%] rounded-2xl px-4 py-2 ${
+                        msg.role === 'user' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-gray-800 text-gray-100 border border-gray-700'
+                      }`}>
+                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {isSendingMessage && (
+                    <div className="flex justify-start">
+                      <div className="bg-gray-800 border border-gray-700 rounded-2xl px-4 py-2">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                          <span className="text-sm text-gray-400">Thinking...</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
 
-              {/* Video Player */}
-              <div className="aspect-video bg-black">
-                <div id="youtube-player" className="w-full h-full"></div>
+                {/* Chat Input */}
+                <div className="p-4 border-t border-gray-700">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                      placeholder="Ask a question..."
+                      className="flex-1 bg-gray-800 text-white rounded-lg px-4 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500"
+                      disabled={isSendingMessage}
+                    />
+                    <button
+                      onClick={handleSendMessage}
+                      disabled={!chatInput.trim() || isSendingMessage}
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white p-2 rounded-lg transition-colors"
+                    >
+                      <Send className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              {/* Mark Complete Button */}
-              <div className="bg-gray-900 p-4 flex items-center justify-between">
-                <div className="text-white">
-                  <p className="text-sm text-gray-400">Watching: {topicTitle}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {videoWatched ? '✓ Marked as complete' : videoEnded ? 'Video finished! Click to mark complete' : 'Watch the video till the end to unlock completion'}
-                  </p>
+              {/* Center - Video Player */}
+              <div className="flex-1 flex flex-col">
+                {/* Close Button */}
+                <button
+                  onClick={handleCloseVideo}
+                  className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+
+                {/* Completion Message */}
+                <AnimatePresence>
+                  {showCompletionMessage && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg font-semibold"
+                    >
+                      ✓ Video Marked Complete!
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Video Player */}
+                <div className="flex-1 bg-black">
+                  <div id="youtube-player" className="w-full h-full"></div>
                 </div>
-                {!videoWatched && showCompleteButton && (
-                  <button
-                    onClick={handleVideoComplete}
-                    className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2 animate-pulse"
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    Mark as Complete
-                  </button>
-                )}
-                {videoWatched && (
-                  <button
-                    onClick={handleCloseVideo}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
-                  >
-                    Back to Topics
-                  </button>
-                )}
+
+                {/* Mark Complete Button */}
+                <div className="bg-gray-900 p-4 flex items-center justify-between">
+                  <div className="text-white">
+                    <p className="text-sm text-gray-400">Watching: {topicTitle}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {videoWatched ? '✓ Marked as complete' : videoEnded ? 'Video finished! Click to mark complete' : 'Watch the video till the end to unlock completion'}
+                    </p>
+                  </div>
+                  {!videoWatched && showCompleteButton && (
+                    <button
+                      onClick={handleVideoComplete}
+                      className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2 animate-pulse"
+                    >
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Mark as Complete
+                    </button>
+                  )}
+                  {videoWatched && (
+                    <button
+                      onClick={handleCloseVideo}
+                      className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+                    >
+                      Back to Topics
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Sidebar - Progress Tracker */}
+              <div className="w-80 bg-gray-900 flex flex-col border-l border-gray-700">
+                {/* Progress Header */}
+                <div className="p-4 bg-gradient-to-r from-blue-600 to-purple-600 border-b border-gray-700">
+                  <h3 className="font-bold text-white mb-2">Learning Progress</h3>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-blue-100">
+                      {subtopics.filter(st => st.completed).length}/{subtopics.length} Complete
+                    </span>
+                    <span className="text-blue-100 font-semibold">
+                      {Math.round((subtopics.filter(st => st.completed).length / subtopics.length) * 100) || 0}%
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-white/20 rounded-full mt-2 overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ 
+                        width: `${(subtopics.filter(st => st.completed).length / subtopics.length) * 100}%` 
+                      }}
+                      transition={{ duration: 0.5 }}
+                      className="h-full bg-white rounded-full"
+                    />
+                  </div>
+                </div>
+
+                {/* Subtopics List */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                  {subtopics.length === 0 ? (
+                    <div className="text-center text-gray-400 text-sm py-8">
+                      <Circle className="w-12 h-12 mx-auto mb-3 text-gray-600" />
+                      <p>No subtopics available</p>
+                    </div>
+                  ) : (
+                    subtopics.map((subtopic, index) => (
+                      <motion.div
+                        key={subtopic.id}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className={`p-3 rounded-lg border transition-all ${
+                          subtopic.completed
+                            ? 'bg-green-900/30 border-green-700'
+                            : 'bg-gray-800 border-gray-700'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 mt-0.5">
+                            {subtopic.completed ? (
+                              <CheckCircle2 className="w-5 h-5 text-green-400" />
+                            ) : (
+                              <Circle className="w-5 h-5 text-gray-600" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-medium ${
+                              subtopic.completed 
+                                ? 'text-green-100 line-through' 
+                                : 'text-gray-200'
+                            }`}>
+                              {subtopic.title}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {subtopic.completed ? '✓ Completed' : 'In progress'}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))
+                  )}
+                </div>
               </div>
             </motion.div>
           </motion.div>

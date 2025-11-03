@@ -43,15 +43,17 @@ export default function TopicDetailModal({
   const handleWatchVideos = (e: React.MouseEvent) => {
     e.stopPropagation();
     console.log('Watch Videos clicked - Topic:', topicTitle, 'Subject:', subjectName);
-    const url = `/videos?topic=${encodeURIComponent(topicTitle)}&subject=${encodeURIComponent(subjectName || '')}`;
+    const subtopicsParam = encodeURIComponent(JSON.stringify(subtopics));
+    const url = `/videos?topic=${encodeURIComponent(topicTitle)}&subject=${encodeURIComponent(subjectName || '')}&subtopics=${subtopicsParam}`;
     console.log('Opening videos in new tab:', url);
     window.open(url, '_blank');
   };
 
   const handleSubtopicClick = (subtopic: Subtopic) => {
     console.log('Subtopic clicked:', subtopic.title);
-    // Open videos in new tab
-    const url = `/videos?topic=${encodeURIComponent(subtopic.title)}&subject=${encodeURIComponent(subjectName || '')}`;
+    // Open videos in new tab with all subtopics for progress tracking
+    const subtopicsParam = encodeURIComponent(JSON.stringify(subtopics));
+    const url = `/videos?topic=${encodeURIComponent(subtopic.title)}&subject=${encodeURIComponent(subjectName || '')}&subtopics=${subtopicsParam}`;
     console.log('Opening subtopic videos in new tab:', url);
     window.open(url, '_blank');
   };
