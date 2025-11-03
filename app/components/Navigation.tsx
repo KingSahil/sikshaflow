@@ -5,6 +5,10 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 
+
+//hmm 
+
+
 interface NavigationProps {
   onGetStartedClick?: () => void;
 }
