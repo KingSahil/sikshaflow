@@ -19,10 +19,12 @@ import {
 import { useState } from "react";
 import Navigation from "./components/Navigation";
 import StudentForm from "./components/StudentForm";
+import TeacherForm from "./components/TeacherForm";
 
 export default function Home() {
   const [email, setEmail] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isTeacherFormOpen, setIsTeacherFormOpen] = useState(false);
 
   const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
@@ -86,22 +88,22 @@ export default function Home() {
 
   const testimonials = [
     {
-      name: "Priya Sharma",
+      name: "Raghav Sharma",
       role: "Computer Science Student",
       text: "SikshaFlow has completely transformed how I manage my studies. Everything is so organized and intuitive!",
-      avatar: "PS"
+      avatar: "RS"
     },
     {
-      name: "Dr. Rajesh Kumar",
+      name: "Samaira",
       role: "Professor, IIT Delhi",
       text: "Finally, a platform that understands the needs of both educators and students. The analytics are game-changing.",
-      avatar: "RK"
+      avatar: "SS"
     },
     {
-      name: "Ananya Patel",
+      name: "Navya Umat",
       role: "Engineering Student",
       text: "I love how SikshaFlow keeps me updated on everything. No more missing deadlines or important announcements!",
-      avatar: "AP"
+      avatar: "NU"
     }
   ];
 
@@ -155,7 +157,10 @@ export default function Home() {
                 Get Started
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
-              <button className="px-8 py-4 bg-white text-blue-600 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 border-2 border-blue-600 flex items-center gap-2">
+              <button 
+                onClick={() => setIsTeacherFormOpen(true)}
+                className="px-8 py-4 bg-white text-blue-600 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 border-2 border-blue-600 flex items-center gap-2"
+              >
                 <School className="w-5 h-5" />
                 Join as University
               </button>
@@ -381,6 +386,9 @@ export default function Home() {
 
       {/* Student Registration Form Modal */}
       <StudentForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />
+      
+      {/* Teacher Registration Form Modal */}
+      <TeacherForm isOpen={isTeacherFormOpen} onClose={() => setIsTeacherFormOpen(false)} />
     </div>
   );
 }

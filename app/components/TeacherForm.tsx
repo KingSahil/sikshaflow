@@ -1,28 +1,26 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, User, Mail, Phone, School, BookOpen, MapPin, Calendar } from "lucide-react";
+import { X, User, Mail, Phone, School, BookOpen, MapPin, Building2, Award } from "lucide-react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
-interface StudentFormProps {
+interface TeacherFormProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function StudentForm({ isOpen, onClose }: StudentFormProps) {
-  const router = useRouter();
+export default function TeacherForm({ isOpen, onClose }: TeacherFormProps) {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     phone: "",
-    dateOfBirth: "",
     university: "",
-    course: "",
-    year: "",
-    semester: "",
+    department: "",
+    designation: "",
+    employeeId: "",
+    specialization: "",
+    experience: "",
     city: "",
-    studentId: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,7 +44,6 @@ export default function StudentForm({ isOpen, onClose }: StudentFormProps) {
     
     // Validate phone number - only numbers and must be 10 digits
     if (name === "phone") {
-      // Remove all non-numeric characters for validation
       const numericValue = value.replace(/\D/g, '');
       
       if (value && !/^\d*$/.test(value.replace(/[\s\-\+]/g, ''))) {
@@ -59,16 +56,6 @@ export default function StudentForm({ isOpen, onClose }: StudentFormProps) {
       } else {
         setPhoneError("");
       }
-    }
-    
-    // Reset semester when year changes
-    if (name === "year") {
-      setFormData({
-        ...formData,
-        year: value,
-        semester: "",
-      });
-      return;
     }
     
     setFormData({
@@ -87,38 +74,22 @@ export default function StudentForm({ isOpen, onClose }: StudentFormProps) {
     setIsSubmitting(false);
     setIsSuccess(true);
 
-    // Store form data before resetting
-    const submittedData = { ...formData };
-    
-    console.log("Submitted data:", submittedData);
-    console.log("Year:", submittedData.year, "Semester:", submittedData.semester);
-
-    // Reset form after success and redirect
+    // Reset form after success
     setTimeout(() => {
       setIsSuccess(false);
       onClose();
-      
-      // Reset form data
       setFormData({
         fullName: "",
         email: "",
         phone: "",
-        dateOfBirth: "",
         university: "",
-        course: "",
-        year: "",
-        semester: "",
+        department: "",
+        designation: "",
+        employeeId: "",
+        specialization: "",
+        experience: "",
         city: "",
-        studentId: "",
       });
-      
-      // Check if year 1 and semester 1, then redirect to subjects page
-      if (submittedData.year === "1" && submittedData.semester === "1") {
-        console.log("Redirecting to subjects page...");
-        router.push(`/subjects?name=${encodeURIComponent(submittedData.fullName)}&year=${submittedData.year}&semester=${submittedData.semester}`);
-      } else {
-        console.log("Not year 1 semester 1, no redirect");
-      }
     }, 2000);
   };
 
@@ -175,7 +146,7 @@ export default function StudentForm({ isOpen, onClose }: StudentFormProps) {
                     </motion.svg>
                   </div>
                   <h3 className="text-3xl font-bold text-gray-900 mb-2">Welcome to SikshaFlow!</h3>
-                  <p className="text-gray-600 text-lg">Your registration is complete. Let's start your journey!</p>
+                  <p className="text-gray-600 text-lg">Your teacher registration is complete. Let's transform education!</p>
                 </motion.div>
               )}
 
@@ -184,12 +155,12 @@ export default function StudentForm({ isOpen, onClose }: StudentFormProps) {
                 {/* Header */}
                 <div className="text-center mb-8">
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-orange-500 rounded-2xl mb-4">
-                    <User className="w-8 h-8 text-white" />
+                    <Award className="w-8 h-8 text-white" />
                   </div>
                   <h2 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-blue-700 to-orange-500 bg-clip-text text-transparent">
-                    Student Registration
+                    Teacher Registration
                   </h2>
-                  <p className="text-gray-600">Join thousands of students already using SikshaFlow</p>
+                  <p className="text-gray-600">Join our community of educators shaping the future</p>
                 </div>
 
                 {/* Form */}
@@ -224,23 +195,6 @@ export default function StudentForm({ isOpen, onClose }: StudentFormProps) {
                             {nameError}
                           </p>
                         )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Date of Birth *
-                        </label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                          <input
-                            type="date"
-                            name="dateOfBirth"
-                            value={formData.dateOfBirth}
-                            onChange={handleChange}
-                            required
-                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
-                          />
-                        </div>
                       </div>
 
                       <div>
@@ -289,14 +243,32 @@ export default function StudentForm({ isOpen, onClose }: StudentFormProps) {
                           </p>
                         )}
                       </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          City *
+                        </label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                          <input
+                            type="text"
+                            name="city"
+                            value={formData.city}
+                            onChange={handleChange}
+                            required
+                            placeholder="Your city"
+                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder:text-gray-400"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Academic Information */}
+                  {/* Professional Information */}
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                       <BookOpen className="w-5 h-5 text-orange-600" />
-                      Academic Information
+                      Professional Information
                     </h3>
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="md:col-span-2">
@@ -320,88 +292,91 @@ export default function StudentForm({ isOpen, onClose }: StudentFormProps) {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Course/Program *
+                          Department *
+                        </label>
+                        <div className="relative">
+                          <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                          <input
+                            type="text"
+                            name="department"
+                            value={formData.department}
+                            onChange={handleChange}
+                            required
+                            placeholder="e.g., Computer Science"
+                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder:text-gray-400"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Designation *
                         </label>
                         <select
-                          name="course"
-                          value={formData.course}
+                          name="designation"
+                          value={formData.designation}
                           onChange={handleChange}
                           required
-                          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 appearance-none bg-white"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
                         >
-                          <option value="" className="text-gray-500">Select your course</option>
-                          <option value="Computer Science" className="text-gray-900">Computer Science</option>
+                          <option value="" className="text-gray-500">Select designation</option>
+                          <option value="Professor" className="text-gray-900">Professor</option>
+                          <option value="Associate Professor" className="text-gray-900">Associate Professor</option>
+                          <option value="Assistant Professor" className="text-gray-900">Assistant Professor</option>
+                          <option value="Lecturer" className="text-gray-900">Lecturer</option>
+                          <option value="Senior Lecturer" className="text-gray-900">Senior Lecturer</option>
                         </select>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Year of Study *
-                        </label>
-                        <select
-                          name="year"
-                          value={formData.year}
-                          onChange={handleChange}
-                          required
-                          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
-                        >
-                          <option value="" className="text-gray-500">Select year</option>
-                          <option value="1" className="text-gray-900">1st Year</option>
-                          <option value="2" className="text-gray-900">2nd Year</option>
-                          <option value="3" className="text-gray-900">3rd Year</option>
-                          <option value="4" className="text-gray-900">4th Year</option>
-                          <option value="5" className="text-gray-900">5th Year</option>
-                        </select>
-                      </div>
-
-      {formData.year && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Semester *
-          </label>
-          <select
-            name="semester"
-            value={formData.semester}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
-          >
-            <option value="" className="text-gray-500">Select semester</option>
-            <option value="1" className="text-gray-900">Semester 1</option>
-            <option value="2" className="text-gray-900">Semester 2</option>
-          </select>
-        </div>
-      )}                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Student ID *
+                          Employee ID *
                         </label>
                         <input
                           type="text"
-                          name="studentId"
-                          value={formData.studentId}
+                          name="employeeId"
+                          value={formData.employeeId}
                           onChange={handleChange}
                           required
-                          placeholder="Enter your student ID"
+                          placeholder="Enter your employee ID"
                           className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder:text-gray-400"
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          City *
+                          Specialization *
                         </label>
-                        <div className="relative">
-                          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                          <input
-                            type="text"
-                            name="city"
-                            value={formData.city}
-                            onChange={handleChange}
-                            required
-                            placeholder="Your city"
-                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder:text-gray-400"
-                          />
-                        </div>
+                        <input
+                          type="text"
+                          name="specialization"
+                          value={formData.specialization}
+                          onChange={handleChange}
+                          required
+                          placeholder="Your area of expertise"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder:text-gray-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Years of Experience *
+                        </label>
+                        <select
+                          name="experience"
+                          value={formData.experience}
+                          onChange={handleChange}
+                          required
+                          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
+                        >
+                          <option value="" className="text-gray-500">Select experience</option>
+                          <option value="0-2" className="text-gray-900">0-2 years</option>
+                          <option value="3-5" className="text-gray-900">3-5 years</option>
+                          <option value="6-10" className="text-gray-900">6-10 years</option>
+                          <option value="11-15" className="text-gray-900">11-15 years</option>
+                          <option value="16-20" className="text-gray-900">16-20 years</option>
+                          <option value="20+" className="text-gray-900">20+ years</option>
+                        </select>
                       </div>
                     </div>
                   </div>
@@ -411,11 +386,11 @@ export default function StudentForm({ isOpen, onClose }: StudentFormProps) {
                     <div className="flex items-start mb-6">
                       <input
                         type="checkbox"
-                        id="terms"
+                        id="terms-teacher"
                         required
                         className="mt-1 mr-3 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                       />
-                      <label htmlFor="terms" className="text-sm text-gray-600">
+                      <label htmlFor="terms-teacher" className="text-sm text-gray-600">
                         I agree to the{" "}
                         <a href="#" className="text-blue-600 hover:underline font-medium">
                           Terms of Service
