@@ -429,14 +429,40 @@ function TopicsContent() {
         ...topic,
         completed: false,
         locked: index !== 0, // Only first topic is unlocked
-        subtopics: (topicSubtopics[topic.id] || []).map(st => ({
-          ...st,
-          completed: false
-        }))
+        subtopics: (topicSubtopics[topic.id] || []).map(st => {
+          // Check localStorage for completion
+          const completedKey = `video-completed-${st.title}`;
+          const isCompleted = typeof window !== 'undefined' && localStorage.getItem(completedKey) === 'true';
+          return {
+            ...st,
+            completed: isCompleted
+          };
+        })
       }));
       setTopics(initialTopics);
     }
   }, [searchParams]);
+
+  // Check for completed videos when modal is opened
+  useEffect(() => {
+    if (isModalOpen && selectedTopic) {
+      // Update subtopics completion status from localStorage
+      setTopics(prevTopics =>
+        prevTopics.map(topic =>
+          topic.id === selectedTopic.id
+            ? {
+                ...topic,
+                subtopics: topic.subtopics.map(st => {
+                  const completedKey = `video-completed-${st.title}`;
+                  const isCompleted = localStorage.getItem(completedKey) === 'true';
+                  return { ...st, completed: isCompleted };
+                })
+              }
+            : topic
+        )
+      );
+    }
+  }, [isModalOpen]);
 
   const handleTopicComplete = (topicId: string, xpReward: number) => {
     // Update topic completion status
@@ -495,12 +521,19 @@ function TopicsContent() {
   };
 
   const handleStartTopic = (topic: typeof topics[0]) => {
+    // Check localStorage for latest completion status
+    const updatedSubtopics = topic.subtopics.map(st => {
+      const completedKey = `video-completed-${st.title}`;
+      const isCompleted = localStorage.getItem(completedKey) === 'true';
+      return { ...st, completed: isCompleted };
+    });
+
     setSelectedTopic({
       id: topic.id,
       title: topic.title,
       description: topic.description,
       xpReward: topic.xpReward,
-      subtopics: topic.subtopics
+      subtopics: updatedSubtopics
     });
     setIsModalOpen(true);
   };
@@ -585,6 +618,7 @@ function TopicsContent() {
           xpReward={selectedTopic.xpReward}
           onCompleteSubtopic={handleSubtopicComplete}
           onCompleteAll={handleCompleteAll}
+          subjectName={getSubjectName(subjectId)}
         />
       )}
 
