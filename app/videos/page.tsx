@@ -349,13 +349,31 @@ function VideosContent() {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to generate quiz');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `Server error: ${response.status}`);
+      }
 
       const data = await response.json();
+      
+      if (!data.quiz || !Array.isArray(data.quiz) || data.quiz.length === 0) {
+        throw new Error('Invalid quiz data received');
+      }
+      
       setQuizQuestions(data.quiz);
     } catch (error) {
       console.error('Quiz generation error:', error);
-      alert('Failed to generate quiz. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      // Show user-friendly error message
+      if (errorMessage.includes('API key') || errorMessage.includes('quota')) {
+        alert('⚠️ AI service temporarily unavailable. Please try again in a few moments.');
+      } else if (errorMessage.includes('timeout') || errorMessage.includes('network')) {
+        alert('⚠️ Network error. Please check your connection and try again.');
+      } else {
+        alert(`⚠️ Failed to generate quiz: ${errorMessage}\n\nPlease try again or contact support if the issue persists.`);
+      }
+      
       setShowQuiz(false);
     } finally {
       setIsGeneratingQuiz(false);

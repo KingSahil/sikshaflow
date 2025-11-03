@@ -45,8 +45,8 @@ export default function Home() {
   const features = [
     {
       icon: <Calendar className="w-8 h-8" />,
-      title: "Smart Timetables",
-      description: "AI-powered scheduling that adapts to your learning pace and preferences.",
+      title: "AI Quiz Generator",
+      description: "Create customized quizzes in seconds with our intelligent AI-powered generator.",
       color: "from-green-500 to-green-600"
     },
     {
@@ -57,8 +57,8 @@ export default function Home() {
     },
     {
       icon: <GraduationCap className="w-8 h-8" />,
-      title: "Interactive Attendance & Grades",
-      description: "Seamless tracking and real-time updates on your academic performance.",
+      title: "Leaderboard & coupons and goodies",
+      description: "Seamless tracking and rewards for top performers.",
       color: "from-orange-500 to-orange-600"
     },
     {
