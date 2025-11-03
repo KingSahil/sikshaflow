@@ -151,7 +151,7 @@ export default function Home() {
               variants={fadeInUp}
               className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             >
-              <Link href="/signup">
+              <Link href="/signup?role=student">
                 <button 
                   className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-2"
                 >
@@ -159,13 +159,14 @@ export default function Home() {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
               </Link>
-              <button 
-                onClick={() => setIsTeacherFormOpen(true)}
-                className="px-8 py-4 bg-white text-blue-600 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 border-2 border-blue-600 flex items-center gap-2"
-              >
-                <School className="w-5 h-5" />
-                Join as University
-              </button>
+              <Link href="/signup?role=teacher">
+                <button 
+                  className="px-8 py-4 bg-white text-blue-600 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 border-2 border-blue-600 flex items-center gap-2"
+                >
+                  <School className="w-5 h-5" />
+                  Join as University
+                </button>
+              </Link>
             </motion.div>
           </motion.div>
         </div>

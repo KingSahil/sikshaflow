@@ -3,12 +3,11 @@
 import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Home, Trophy, Star, Target, TrendingUp, Loader2, LogOut } from "lucide-react";
+import { ArrowLeft, Home, Trophy, Star, Target, TrendingUp } from "lucide-react";
 import XPBar from "../components/XPBar";
 import TopicCard from "../components/TopicCard";
 import TopicDetailModal from "../components/TopicDetailModal";
 import AchievementPopup from "../components/AchievementPopup";
-import { useAuth } from "@/contexts/AuthContext";
 
 // Define all topics for each subject
 const subjectTopics: { [key: string]: Array<{
@@ -381,7 +380,6 @@ const topicSubtopics: { [key: string]: Array<{ id: string; title: string }> } = 
 function TopicsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, loading, logout } = useAuth();
   const [subjectId, setSubjectId] = useState("");
   
   // Load XP and level from localStorage on initialization
@@ -744,39 +742,6 @@ function TopicsContent() {
     },
   ];
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
-    }
-  }, [user, loading, router]);
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      router.push("/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
-
-  // Show loading spinner while checking authentication
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Don't render content if user is not authenticated
-  if (!user) {
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Achievement Popup */}
@@ -825,14 +790,6 @@ function TopicsContent() {
                 <p className="text-sm text-gray-600">Complete topics to earn XP</p>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors font-medium"
-              title="Logout"
-            >
-              <LogOut className="w-5 h-5" />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
           </div>
         </div>
       </div>

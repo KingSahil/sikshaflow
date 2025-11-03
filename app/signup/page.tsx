@@ -4,15 +4,19 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Mail, Lock, Eye, EyeOff, Loader2, GraduationCap } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import TeacherForm from "@/app/components/TeacherForm";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { signup, user, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showTeacherForm, setShowTeacherForm] = useState(false);
+  const [userRole, setUserRole] = useState<"student" | "teacher">("student");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -24,10 +28,28 @@ export default function SignUpPage() {
     confirmPassword: "",
   });
 
+  // Get role from URL parameters
+  useEffect(() => {
+    const role = searchParams.get("role");
+    if (role === "teacher") {
+      setUserRole("teacher");
+    }
+  }, [searchParams]);
+
   // Redirect if user is already logged in
   useEffect(() => {
     if (!loading && user) {
-      router.push("/subjects");
+      // Check if user is teacher based on email
+      const isTeacher = localStorage.getItem(`user-role-email-${user.email}`) === "teacher";
+      const hasCompletedTeacherForm = localStorage.getItem(`teacher-form-completed-${user.email}`);
+      
+      if (isTeacher && !hasCompletedTeacherForm) {
+        setShowTeacherForm(true);
+      } else if (isTeacher) {
+        router.push("/teacher/dashboard");
+      } else {
+        router.push("/subjects");
+      }
     }
   }, [user, loading, router]);
 
@@ -83,9 +105,19 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     try {
-      await signup(formData.email, formData.password);
-      // Redirect to subjects page after successful signup
-      router.push("/subjects");
+      const userCredential = await signup(formData.email, formData.password);
+      
+      // Store user role and email in localStorage immediately after signup
+      localStorage.setItem(`user-role-email-${formData.email}`, userRole);
+      
+      if (userRole === "teacher") {
+        // Show teacher form after signup
+        setIsLoading(false);
+        setShowTeacherForm(true);
+      } else {
+        // Redirect to subjects page for students
+        router.push("/subjects");
+      }
     } catch (error: any) {
       console.error("Signup error:", error);
       let errorMessage = "An error occurred. Please try again.";
@@ -103,9 +135,16 @@ export default function SignUpPage() {
         ...prev,
         email: errorMessage
       }));
-    } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleTeacherFormComplete = () => {
+    if (user) {
+      localStorage.setItem(`teacher-form-completed-${user.email}`, "true");
+    }
+    setShowTeacherForm(false);
+    router.push("/teacher/dashboard");
   };
 
   // Show loading spinner while checking authentication
@@ -117,6 +156,18 @@ export default function SignUpPage() {
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
+    );
+  }
+
+  // Show teacher form after signup if user is teacher
+  if (showTeacherForm && user) {
+    return (
+      <>
+        <TeacherForm 
+          isOpen={true} 
+          onClose={handleTeacherFormComplete}
+        />
+      </>
     );
   }
 
@@ -152,8 +203,14 @@ export default function SignUpPage() {
             >
               <GraduationCap className="w-10 h-10" />
             </motion.div>
-            <h1 className="text-3xl font-bold mb-2">Create Account</h1>
-            <p className="text-blue-100">Start your learning journey today!</p>
+            <h1 className="text-3xl font-bold mb-2">
+              {userRole === "teacher" ? "Join as University/Teacher" : "Create Account"}
+            </h1>
+            <p className="text-blue-100">
+              {userRole === "teacher" 
+                ? "First, create your account. Then complete teacher registration." 
+                : "Start your learning journey today!"}
+            </p>
           </div>
 
           {/* Form */}

@@ -31,7 +31,12 @@ export default function LoginPage() {
   // Redirect if user is already logged in
   useEffect(() => {
     if (!loading && user) {
-      router.push("/subjects");
+      const isTeacher = localStorage.getItem(`user-role-email-${user.email}`) === "teacher";
+      if (isTeacher) {
+        router.push("/teacher/dashboard");
+      } else {
+        router.push("/subjects");
+      }
     }
   }, [user, loading, router]);
 
@@ -75,8 +80,13 @@ export default function LoginPage() {
 
     try {
       await login(formData.email, formData.password);
-      // Redirect to subjects page after successful login
-      router.push("/subjects");
+      // Check user role and redirect accordingly
+      const isTeacher = localStorage.getItem(`user-role-email-${formData.email}`) === "teacher";
+      if (isTeacher) {
+        router.push("/teacher/dashboard");
+      } else {
+        router.push("/subjects");
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       let errorMessage = "Invalid email or password";
