@@ -6,15 +6,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-
-//hmm 
-
-
-interface NavigationProps {
-  onGetStartedClick?: () => void;
-}
-
-export default function Navigation({ onGetStartedClick }: NavigationProps) {
+export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [

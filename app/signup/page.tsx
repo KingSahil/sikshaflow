@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import TeacherForm from "@/app/components/TeacherForm";
+import StudentForm from "@/app/components/StudentForm";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function SignUpPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showTeacherForm, setShowTeacherForm] = useState(false);
+  const [showStudentForm, setShowStudentForm] = useState(false);
   const [userRole, setUserRole] = useState<"student" | "teacher">("student");
   const [formData, setFormData] = useState({
     email: "",
@@ -42,11 +44,14 @@ export default function SignUpPage() {
       // Check if user is teacher based on email
       const isTeacher = localStorage.getItem(`user-role-email-${user.email}`) === "teacher";
       const hasCompletedTeacherForm = localStorage.getItem(`teacher-form-completed-${user.email}`);
+      const hasCompletedStudentForm = localStorage.getItem(`student-form-completed-${user.email}`);
       
       if (isTeacher && !hasCompletedTeacherForm) {
         setShowTeacherForm(true);
       } else if (isTeacher) {
         router.push("/teacher/dashboard");
+      } else if (!hasCompletedStudentForm) {
+        setShowStudentForm(true);
       } else {
         router.push("/subjects");
       }
@@ -117,8 +122,9 @@ export default function SignUpPage() {
         setIsLoading(false);
         setShowTeacherForm(true);
       } else {
-        // Redirect to subjects page for students
-        router.push("/subjects");
+        // Show student registration form after signup
+        setIsLoading(false);
+        setShowStudentForm(true);
       }
     } catch (error: any) {
       console.error("Signup error:", error);
@@ -149,6 +155,14 @@ export default function SignUpPage() {
     router.push("/teacher/dashboard");
   };
 
+  const handleStudentFormComplete = () => {
+    if (user) {
+      localStorage.setItem(`student-form-completed-${user.email}`, "true");
+    }
+    setShowStudentForm(false);
+    router.push("/subjects");
+  };
+
   // Show loading spinner while checking authentication
   if (loading) {
     return (
@@ -168,6 +182,18 @@ export default function SignUpPage() {
         <TeacherForm 
           isOpen={true} 
           onClose={handleTeacherFormComplete}
+        />
+      </>
+    );
+  }
+
+  // Show student form after signup if user is student
+  if (showStudentForm && user) {
+    return (
+      <>
+        <StudentForm 
+          isOpen={true} 
+          onClose={handleStudentFormComplete}
         />
       </>
     );
@@ -236,7 +262,7 @@ export default function SignUpPage() {
                         ? "border-red-300 focus:border-red-500 focus:ring-red-200"
                         : "border-gray-200 focus:border-green-500 focus:ring-green-200"
                     }`}
-                    placeholder="student@example.com"
+                    placeholder="hello@example.com"
                   />
                 </div>
                 <AnimatePresence>

@@ -19,13 +19,9 @@ import {
 import { useState } from "react";
 import Link from "next/link";
 import Navigation from "./components/Navigation";
-import StudentForm from "./components/StudentForm";
-import TeacherForm from "./components/TeacherForm";
 
 export default function Home() {
   const [email, setEmail] = useState("");
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isTeacherFormOpen, setIsTeacherFormOpen] = useState(false);
 
   const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
@@ -110,7 +106,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navigation onGetStartedClick={() => setIsFormOpen(true)} />
+      <Navigation />
       
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-orange-50 pt-20">
@@ -386,12 +382,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-
-      {/* Student Registration Form Modal */}
-      <StudentForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />
-      
-      {/* Teacher Registration Form Modal */}
-      <TeacherForm isOpen={isTeacherFormOpen} onClose={() => setIsTeacherFormOpen(false)} />
     </div>
   );
 }

@@ -96,7 +96,6 @@ export default function StudentForm({ isOpen, onClose }: StudentFormProps) {
     // Reset form after success and redirect
     setTimeout(() => {
       setIsSuccess(false);
-      onClose();
       
       // Reset form data
       setFormData({
@@ -112,13 +111,8 @@ export default function StudentForm({ isOpen, onClose }: StudentFormProps) {
         studentId: "",
       });
       
-      // Check if year 1 and semester 1, then redirect to subjects page
-      if (submittedData.year === "1" && submittedData.semester === "1") {
-        console.log("Redirecting to subjects page...");
-        router.push(`/subjects?name=${encodeURIComponent(submittedData.fullName)}&year=${submittedData.year}&semester=${submittedData.semester}`);
-      } else {
-        console.log("Not year 1 semester 1, no redirect");
-      }
+      // Call onClose which will handle the redirect
+      onClose();
     }, 2000);
   };
 
@@ -126,21 +120,17 @@ export default function StudentForm({ isOpen, onClose }: StudentFormProps) {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-          />
-
           {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-black/40 backdrop-blur-sm"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                onClose();
+              }
+            }}
           >
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl my-8 relative">
               {/* Close Button */}
