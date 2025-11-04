@@ -446,36 +446,70 @@ function TopicsContent() {
     setSubjectId(subject);
 
     // Initialize topics for the subject
-    if (subject && subjectTopics[subject]) {
-      const initialTopics = subjectTopics[subject].map((topic, index) => {
-        // Check localStorage for topic completion
-        const topicCompletedKey = `topic-completed-${subject}-${topic.id}`;
-        const isTopicCompleted = typeof window !== 'undefined' && localStorage.getItem(topicCompletedKey) === 'true';
-        
-        return {
-          ...topic,
-          completed: isTopicCompleted,
-          locked: index !== 0 && !isTopicCompleted, // Unlock if completed or first topic
-          subtopics: (topicSubtopics[topic.id] || []).map(st => {
-            // Check localStorage for completion
-            const completedKey = `video-completed-${st.title}`;
-            const isCompleted = typeof window !== 'undefined' && localStorage.getItem(completedKey) === 'true';
-            return {
-              ...st,
-              completed: isCompleted
-            };
-          })
-        };
-      });
-      
+    if (subject) {
+      // First, check if there are teacher-created topics in localStorage
+      const teacherTopics = localStorage.getItem(`teacher-topics-${subject}`);
+      let topicsToUse = [];
+
+      if (teacherTopics) {
+        // Use teacher-created topics
+        const parsedTeacherTopics = JSON.parse(teacherTopics);
+        topicsToUse = parsedTeacherTopics.map((topic: any, index: number) => {
+          // Check localStorage for topic completion
+          const topicCompletedKey = `topic-completed-${subject}-${topic.id}`;
+          const isTopicCompleted = typeof window !== 'undefined' && localStorage.getItem(topicCompletedKey) === 'true';
+          
+          return {
+            id: topic.id.toString(), // Convert to string to match expected format
+            title: topic.title,
+            description: topic.description,
+            xpReward: topic.xp,
+            completed: isTopicCompleted,
+            locked: index !== 0 && !isTopicCompleted,
+            subtopics: (topic.subtopics || []).map((st: any) => {
+              // Check localStorage for completion
+              const completedKey = `video-completed-${st.title}`;
+              const isCompleted = typeof window !== 'undefined' && localStorage.getItem(completedKey) === 'true';
+              return {
+                id: st.id.toString(),
+                title: st.title,
+                completed: isCompleted
+              };
+            })
+          };
+        });
+      } else if (subjectTopics[subject]) {
+        // Fall back to hardcoded topics
+        topicsToUse = subjectTopics[subject].map((topic, index) => {
+          // Check localStorage for topic completion
+          const topicCompletedKey = `topic-completed-${subject}-${topic.id}`;
+          const isTopicCompleted = typeof window !== 'undefined' && localStorage.getItem(topicCompletedKey) === 'true';
+                  
+          return {
+            ...topic,
+            completed: isTopicCompleted,
+            locked: index !== 0 && !isTopicCompleted, // Unlock if completed or first topic
+            subtopics: (topicSubtopics[topic.id] || []).map(st => {
+              // Check localStorage for completion
+              const completedKey = `video-completed-${st.title}`;
+              const isCompleted = typeof window !== 'undefined' && localStorage.getItem(completedKey) === 'true';
+              return {
+                ...st,
+                completed: isCompleted
+              };
+            })
+          };
+        });
+      }
+            
       // Unlock topics that come after completed topics
-      for (let i = 1; i < initialTopics.length; i++) {
-        if (initialTopics[i - 1].completed) {
-          initialTopics[i].locked = false;
+      for (let i = 1; i < topicsToUse.length; i++) {
+        if (topicsToUse[i - 1].completed) {
+          topicsToUse[i].locked = false;
         }
       }
-      
-      setTopics(initialTopics);
+            
+      setTopics(topicsToUse);
     }
   }, [searchParams]);
 

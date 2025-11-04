@@ -24,29 +24,58 @@ function ManageContentComponent() {
   const [subject, setSubject] = useState("");
   const [showAddTopicModal, setShowAddTopicModal] = useState(false);
   const [showAddVideoModal, setShowAddVideoModal] = useState(false);
-  const [selectedTopic, setSelectedTopic] = useState<any>(null);
-  const [topics, setTopics] = useState([
-    {
-      id: 1,
-      title: "Introduction to Calculus",
-      description: "Basic concepts of differentiation and integration",
-      xp: 100,
-      subtopics: [
-        { id: 1, title: "Limits", videoId: "abc123", duration: "15:30" },
-        { id: 2, title: "Derivatives", videoId: "def456", duration: "20:45" },
-      ],
-    },
-    {
-      id: 2,
-      title: "Linear Algebra Fundamentals",
-      description: "Matrices, vectors, and transformations",
-      xp: 150,
-      subtopics: [
-        { id: 1, title: "Matrix Operations", videoId: "ghi789", duration: "18:20" },
-        { id: 2, title: "Determinants", videoId: "jkl012", duration: "22:10" },
-      ],
-    },
-  ]);
+  // Define types for better type safety
+  interface Topic {
+    id: number;
+    title: string;
+    description: string;
+    xp: number;
+    subtopics: Subtopic[];
+  }
+
+  interface Subtopic {
+    id: number;
+    title: string;
+    videoId: string;
+    duration: string;
+  }
+
+  const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
+  const [topics, setTopics] = useState(() => {
+    // Load topics from localStorage on initialization
+    if (typeof window !== 'undefined') {
+      const subject = new URLSearchParams(window.location.search).get("subject");
+      if (subject) {
+        const savedTopics = localStorage.getItem(`teacher-topics-${subject}`);
+        if (savedTopics) {
+          return JSON.parse(savedTopics);
+        }
+      }
+    }
+    // Default topics if none saved
+    return [
+      {
+        id: 1,
+        title: "Introduction to Calculus",
+        description: "Basic concepts of differentiation and integration",
+        xp: 100,
+        subtopics: [
+          { id: 1, title: "Limits", videoId: "abc123", duration: "15:30" },
+          { id: 2, title: "Derivatives", videoId: "def456", duration: "20:45" },
+        ],
+      },
+      {
+        id: 2,
+        title: "Linear Algebra Fundamentals",
+        description: "Matrices, vectors, and transformations",
+        xp: 150,
+        subtopics: [
+          { id: 1, title: "Matrix Operations", videoId: "ghi789", duration: "18:20" },
+          { id: 2, title: "Determinants", videoId: "jkl012", duration: "22:10" },
+        ],
+      },
+    ];
+  });
 
   const [newTopic, setNewTopic] = useState({
     title: "",
@@ -64,8 +93,20 @@ function ManageContentComponent() {
     const subjectId = searchParams.get("subject");
     if (subjectId) {
       setSubject(subjectId);
+      // Load topics from localStorage when subject changes
+      const savedTopics = localStorage.getItem(`teacher-topics-${subjectId}`);
+      if (savedTopics) {
+        setTopics(JSON.parse(savedTopics));
+      }
     }
   }, [searchParams]);
+
+  // Save topics to localStorage whenever topics change
+  useEffect(() => {
+    if (subject && topics.length > 0) {
+      localStorage.setItem(`teacher-topics-${subject}`, JSON.stringify(topics));
+    }
+  }, [topics, subject]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -99,7 +140,7 @@ function ManageContentComponent() {
       return;
     }
 
-    const updatedTopics = topics.map((topic) => {
+    const updatedTopics = topics.map((topic: Topic) => {
       if (topic.id === newVideo.topicId) {
         return {
           ...topic,
@@ -124,17 +165,17 @@ function ManageContentComponent() {
 
   const handleDeleteTopic = (topicId: number) => {
     if (confirm("Are you sure you want to delete this topic?")) {
-      setTopics(topics.filter((t) => t.id !== topicId));
+      setTopics(topics.filter((t: Topic) => t.id !== topicId));
     }
   };
 
   const handleDeleteVideo = (topicId: number, videoId: number) => {
     if (confirm("Are you sure you want to delete this video?")) {
-      const updatedTopics = topics.map((topic) => {
+      const updatedTopics = topics.map((topic: Topic) => {
         if (topic.id === topicId) {
           return {
             ...topic,
-            subtopics: topic.subtopics.filter((v) => v.id !== videoId),
+            subtopics: topic.subtopics.filter((v: Subtopic) => v.id !== videoId),
           };
         }
         return topic;
@@ -197,7 +238,7 @@ function ManageContentComponent() {
 
         {/* Topics List */}
         <div className="space-y-6">
-          {topics.map((topic, index) => (
+          {topics.map((topic: Topic, index: number) => (
             <motion.div
               key={topic.id}
               initial={{ opacity: 0, y: 20 }}
@@ -247,7 +288,7 @@ function ManageContentComponent() {
                   </p>
                 ) : (
                   <div className="space-y-3">
-                    {topic.subtopics.map((video) => (
+                    {topic.subtopics.map((video: Subtopic) => (
                       <div
                         key={video.id}
                         className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
@@ -410,7 +451,7 @@ function ManageContentComponent() {
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                     >
                       <option value={0}>Select a topic</option>
-                      {topics.map((topic) => (
+                      {topics.map((topic: Topic) => (
                         <option key={topic.id} value={topic.id}>
                           {topic.title}
                         </option>
