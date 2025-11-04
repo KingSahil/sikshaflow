@@ -437,14 +437,14 @@ function VideosContent() {
               {/* Left Sidebar - AI Chatbot */}
               <div className="w-80 bg-gray-900 flex flex-col border-r border-gray-700">
                 {/* Chat Header */}
-                <div className="p-4 bg-gradient-to-r from-purple-600 to-blue-600 border-b border-gray-700">
+                <div className="p-4 bg-gradient-to-r from-green-500 to-emerald-600 border-b border-gray-700">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                       <Bot className="w-6 h-6 text-white" />
                     </div>
                     <div>
                       <h3 className="font-bold text-white">AI Tutor</h3>
-                      <p className="text-xs text-blue-100">Powered by Gemini 2.5 Pro</p>
+                      <p className="text-xs text-green-100">Powered by Gemini 2.5 Pro</p>
                     </div>
                   </div>
                 </div>
@@ -463,7 +463,7 @@ function VideosContent() {
                     <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[85%] rounded-2xl px-4 py-3 ${
                         msg.role === 'user' 
-                          ? 'bg-blue-600 text-white' 
+                          ? 'bg-green-600 text-white' 
                           : 'bg-gray-800 text-gray-100 border border-gray-700'
                       }`}>
                         {msg.role === 'user' ? (
@@ -475,11 +475,11 @@ function VideosContent() {
                             prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
                             prose-strong:text-white prose-strong:font-bold
                             prose-em:text-blue-300 prose-em:italic
-                            prose-code:text-blue-300 prose-code:bg-gray-900 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
+                            prose-code:text-green-300 prose-code:bg-gray-900 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
                             prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700
                             prose-ul:my-2 prose-ol:my-2 prose-li:my-1
-                            prose-a:text-blue-400 prose-a:underline
-                            prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic
+                            prose-a:text-green-400 prose-a:underline
+                            prose-blockquote:border-l-4 prose-blockquote:border-green-500 prose-blockquote:pl-4 prose-blockquote:italic
                           ">
                             <ReactMarkdown
                               remarkPlugins={[remarkMath, remarkGfm]}
@@ -489,7 +489,7 @@ function VideosContent() {
                                 code: ({node, className, children, ...props}: any) => {
                                   const isInline = !className || !className.includes('language-');
                                   return isInline ? (
-                                    <code className="text-blue-300 bg-gray-900 px-1.5 py-0.5 rounded text-xs font-mono" {...props}>
+                                    <code className="text-green-300 bg-gray-900 px-1.5 py-0.5 rounded text-xs font-mono" {...props}>
                                       {children}
                                     </code>
                                   ) : (
@@ -500,7 +500,7 @@ function VideosContent() {
                                 },
                                 // Style links
                                 a: ({node, children, ...props}) => (
-                                  <a className="text-blue-400 hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer" {...props}>
+                                  <a className="text-green-400 hover:text-green-300 underline" target="_blank" rel="noopener noreferrer" {...props}>
                                     {children}
                                   </a>
                                 ),
@@ -529,7 +529,7 @@ function VideosContent() {
                     <div className="flex justify-start">
                       <div className="bg-gray-800 border border-gray-700 rounded-2xl px-4 py-2">
                         <div className="flex items-center gap-2">
-                          <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                          <Loader2 className="w-4 h-4 animate-spin text-green-400" />
                           <span className="text-sm text-gray-400">Thinking...</span>
                         </div>
                       </div>
@@ -547,13 +547,13 @@ function VideosContent() {
                       onChange={(e) => setChatInput(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                       placeholder="Ask a question..."
-                      className="flex-1 bg-gray-800 text-white rounded-lg px-4 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500"
+                      className="flex-1 bg-gray-800 text-white rounded-lg px-4 py-2 text-sm border border-gray-700 focus:outline-none focus:border-green-500"
                       disabled={isSendingMessage}
                     />
                     <button
                       onClick={handleSendMessage}
                       disabled={!chatInput.trim() || isSendingMessage}
-                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white p-2 rounded-lg transition-colors"
+                      className="bg-green-600 hover:bg-green-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white p-2 rounded-lg transition-colors"
                     >
                       <Send className="w-5 h-5" />
                     </button>
@@ -816,13 +816,13 @@ function VideosContent() {
               {/* Right Sidebar - Progress Tracker */}
               <div className="w-80 bg-gray-900 flex flex-col border-l border-gray-700">
                 {/* Progress Header */}
-                <div className="p-4 bg-gradient-to-r from-blue-600 to-purple-600 border-b border-gray-700">
+                <div className="p-4 bg-gradient-to-r from-green-500 to-emerald-600 border-b border-gray-700">
                   <h3 className="font-bold text-white mb-2">Learning Progress</h3>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-blue-100">
+                    <span className="text-green-100">
                       {subtopics.filter(st => st.completed).length}/{subtopics.length} Complete
                     </span>
-                    <span className="text-blue-100 font-semibold">
+                    <span className="text-green-100 font-semibold">
                       {Math.round((subtopics.filter(st => st.completed).length / subtopics.length) * 100) || 0}%
                     </span>
                   </div>
@@ -856,10 +856,10 @@ function VideosContent() {
                         disabled={activeSubtopicId === subtopic.id}
                         className={`w-full p-3 rounded-lg border transition-all text-left hover:scale-105 hover:shadow-lg ${
                           activeSubtopicId === subtopic.id
-                            ? 'bg-blue-900/50 border-blue-500 cursor-wait'
+                            ? 'bg-green-900/50 border-green-500 cursor-wait'
                             : subtopic.completed
                             ? 'bg-green-900/30 border-green-700 hover:bg-green-900/40'
-                            : 'bg-gray-800 border-gray-700 hover:bg-gray-700 hover:border-blue-500'
+                            : 'bg-gray-800 border-gray-700 hover:bg-gray-700 hover:border-green-500'
                         }`}
                       >
                         <div className="flex items-start gap-3">
